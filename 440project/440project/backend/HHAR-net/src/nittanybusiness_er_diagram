@@ -1,0 +1,51 @@
+// NittanyBusiness ER Diagram
+digraph {
+	rankdir=LR splines=ortho
+	User [label="User
+[userID (PK)
+name
+role
+contact
+password]"]
+	Product [label="Product
+[productID (PK)
+name
+description
+price
+status]"]
+	Order [label="Order
+[orderID (PK)
+orderDate
+totalAmount]"]
+	OrderItem [label="OrderItem
+[(orderID, productID) (PK)
+quantity]"]
+	Category [label="Category
+[categoryID (PK)
+name
+description]"]
+	Review [label="Review
+[reviewID (PK)
+content
+rating]"]
+	PaymentInfo [label="PaymentInfo
+[paymentID (PK)
+cardNumber
+cardHolder
+expiry]"]
+	ChangeRequest [label="ChangeRequest
+[requestID (PK)
+requestType
+status]"]
+	User -> Order [label="places (Buyer)"]
+	Order -> OrderItem [label=contains]
+	OrderItem -> Product [label=for]
+	Product -> Category [label="belongs to"]
+	User -> Product [label="sells (Seller)"]
+	User -> Review [label="writes (Buyer)"]
+	Product -> Review [label="has reviews"]
+	User -> PaymentInfo [label="owns (Buyer)"]
+	User -> ChangeRequest [label=submits]
+	ChangeRequest -> User [label="approved by (HelpDesk)"]
+	Category -> Category [label="parent-child" style=dashed]
+}
