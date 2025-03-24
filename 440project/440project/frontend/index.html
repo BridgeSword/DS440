@@ -3,125 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Human Activity Recognition & BMR Estimation</title>
+    <title>Enhanced Human Activity Recognition</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
+            background-color: #f0f4f8;
             padding: 20px;
+            text-align: center;
         }
         .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
+            background: #fff;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-width: 900px;
+            margin: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            color: #2c3e50;
+        h1 { color: #333; }
+        input, button, select {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
         }
-        .input-field {
-            margin: 10px 0;
-            padding: 8px;
-            width: 80%;
-            font-size: 16px;
-        }
-        .btn {
-            padding: 10px 20px;
-            background: #3498db;
+        button {
+            background-color: #28a745;
             color: white;
-            border: none;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-            border-radius: 5px;
         }
-        .btn:hover {
-            background: #2980b9;
+        button:hover {
+            background-color: #218838;
         }
-        .activity-result, .bmr-result {
-            font-size: 18px;
-            font-weight: bold;
+        .recommendation, .history {
             margin-top: 15px;
-            color: #27ae60;
+            font-size: 1.1em;
+            color: #444;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Human Activity Recognition & BMR Estimation</h1>
-        <p>Upload your activity data and get personalized insights.</p>
-        
-        <input type="file" class="input-field" id="fileInput">
-        <button class="btn" onclick="processData()">Upload & Analyze</button>
+        <h1>Enhanced Human Activity Recognition Dashboard</h1>
 
-        <div class="activity-result" id="activityDisplay"></div>
+        <div>
+            <input type="number" id="age" placeholder="Age">
+            <input type="number" id="weight" placeholder="Weight (kg)">
+            <input type="number" id="height" placeholder="Height (cm)">
+            <select id="gender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select><br>
 
-        <h2>Estimate Your Daily BMR</h2>
-        <input type="number" class="input-field" id="age" placeholder="Enter Age">
-        <input type="number" class="input-field" id="weight" placeholder="Enter Weight (kg)">
-        <input type="number" class="input-field" id="height" placeholder="Enter Height (cm)">
-        <select class="input-field" id="gender">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-        </select>
-        <button class="btn" onclick="calculateBMR()">Calculate BMR</button>
+            <input type="file" id="dataFile">
+            <button onclick="importAndAnalyze()">Import & Analyze Data</button>
+        </div>
 
-        <div class="bmr-result" id="bmrResult"></div>
-        <div class="bmr-result" id="recommendation"></div>
+        <canvas id="activityChart"></canvas>
+
+        <div class="recommendation" id="recommendation"></div>
+        <div class="history" id="history"></div>
     </div>
 
     <script>
-        function processData() {
-            let activities = {
-                "Sitting": Math.floor(Math.random() * 300) + 100,
-                "Walking": Math.floor(Math.random() * 120) + 30,
-                "Standing": Math.floor(Math.random() * 200) + 50,
-                "Sleeping": Math.floor(Math.random() * 480) + 300
-            };
-
-            document.getElementById("activityDisplay").innerHTML = `
-                <p>Today you spent:</p>
-                <p>Sitting: ${activities.Sitting} minutes</p>
-                <p>Walking: ${activities.Walking} minutes</p>
-                <p>Standing: ${activities.Standing} minutes</p>
-                <p>Sleeping: ${activities.Sleeping} minutes</p>
-            `;
-        }
-
-        function calculateBMR() {
+        function importAndAnalyze() {
             let age = document.getElementById("age").value;
             let weight = document.getElementById("weight").value;
             let height = document.getElementById("height").value;
             let gender = document.getElementById("gender").value;
+            const fileInput = document.getElementById('dataFile');
 
-            if (!age || !weight || !height) {
-                alert("Please fill in all fields.");
+            if (!age || !weight || !height || fileInput.files.length === 0) {
+                alert("Please fill in all fields and select a file to import!");
                 return;
             }
 
-            let bmr;
-            if (gender === "male") {
-                bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-            } else {
-                bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-            }
+            // Calculate BMR based on user input
+            let bmr = gender === "male" 
+                ? 10 * weight + 6.25 * height - 5 * age + 5
+                : 10 * weight + 6.25 * height - 5 * age - 161;
 
-            document.getElementById("bmrResult").innerHTML = `Your estimated BMR is ${Math.round(bmr)} calories/day.`;
-
-            let recommendation = "";
-            if (bmr < 1400) {
-                recommendation = "Your metabolism is on the lower side. Consider increasing activity levels.";
-            } else if (bmr < 1800) {
-                recommendation = "Your metabolism is moderate. Maintain a balanced diet and stay active.";
-            } else {
-                recommendation = "Your metabolism is high! Ensure proper nutrition to sustain energy levels.";
-            }
-
-            document.getElementById("recommendation").innerHTML = `<p>${recommendation}</p>`;
+            // Simulate data processing delay
+            setTimeout(() => {
+                renderChart();
+                saveToHistory(bmr);
+                giveSmartRecommendation(bmr);
+                showHistory();
+                alert("Data imported and analyzed successfully!");
+            }, 2000);
         }
+
+        function renderChart() {
+            const data = {
+                labels: ['Sitting', 'Walking', 'Standing', 'Sleeping'],
+                datasets: [{
+                    label: 'Time Spent (hours)',
+                    data: [
+                        (Math.random() * 4 + 2).toFixed(1),
+                        (Math.random() * 2 + 1).toFixed(1),
+                        (Math.random() * 3 + 1).toFixed(1),
+                        (Math.random() * 3 + 5).toFixed(1)
+                    ],
+                    backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0']
+                }]
+            };
+
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {responsive: true}
+            });
+        }
+
+        function saveToHistory(bmr) {
+            let history = JSON.parse(localStorage.getItem('bmrHistory')) || [];
+            history.push({date: new Date().toLocaleDateString(), bmr: parseFloat(bmr)});
+            localStorage.setItem('bmrHistory', JSON.stringify(history));
+        }
+
+        function giveSmartRecommendation(bmr) {
+            let history = JSON.parse(localStorage.getItem('bmrHistory')) || [];
+            let avgBMR = history.reduce((sum, record) => sum + record.bmr, 0) / history.length;
+
+            let recommendationText = `Your current BMR is ${bmr.toFixed(1)}. `;
+            
+            if (history.length > 1) {
+                if (bmr > avgBMR) {
+                    recommendationText += "Your BMR is above your average—great job maintaining an active metabolism!";
+                } else if (bmr < avgBMR) {
+                    recommendationText += "Your BMR is below your average—consider increasing your physical activities or reviewing your diet.";
+                } else {
+                    recommendationText += "You're exactly at your average BMR. Keep up your current routine!";
+                }
+            } else {
+                recommendationText += "Keep tracking to get personalized insights over time.";
+            }
+
+            document.getElementById("recommendation").innerHTML = recommendationText;
+        }
+
+        function showHistory() {
+            let history = JSON.parse(localStorage.getItem('bmrHistory')) || [];
+            if (history.length > 1) {
+                let historyText = "Your BMR History:<br>" + history.map(entry => `${entry.date}: ${entry.bmr.toFixed(1)}`).join("<br>");
+                document.getElementById("history").innerHTML = historyText;
+            } else {
+                document.getElementById("history").innerHTML = "No historical data yet.";
+            }
+        }
+
+        window.onload = function() {
+            showHistory();
+        };
     </script>
 </body>
 </html>
